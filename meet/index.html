@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BIG FUN — What Planners Should Know</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-primary: #0a0a0f;
+    --bg-card: #12121a;
+    --bg-sidebar: #08080d;
+    --accent: #DD00AA;
+    --accent-glow: rgba(221, 0, 170, 0.15);
+    --text-primary: #f0ece4;
+    --text-secondary: #8a8694;
+    --text-muted: #4a4658;
+    --green: #4ecb71;
+    --coral: #ff6b6b;
+    --blue: #5b9cf5;
+    --purple: #a78bfa;
+    --sidebar-width: 260px;
+    --transition: 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'DM Sans', sans-serif;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+    cursor: default;
+  }
+
+  /* ── Slide Counter ── */
+  .slide-counter {
+    position: fixed;
+    top: 28px;
+    right: 36px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--text-muted);
+    z-index: 100;
+    letter-spacing: 2px;
+  }
+  .slide-counter .current { color: var(--accent); font-weight: 700; }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: var(--sidebar-width);
+    background: var(--bg-sidebar);
+    border-right: 1px solid rgba(255,255,255,0.04);
+    z-index: 90;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 40px 24px;
+  }
+  .sidebar-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 28px;
+    padding-left: 12px;
+  }
+  .sidebar-item {
+    padding: 10px 12px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-left: 2px solid transparent;
+    transition: all 0.3s ease;
+    margin-bottom: 4px;
+    border-radius: 0 6px 6px 0;
+    font-weight: 400;
+    line-height: 1.4;
+  }
+  .sidebar-item:hover {
+    color: var(--text-primary);
+    background: rgba(255,255,255,0.03);
+  }
+  .sidebar-item.active {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    background: var(--accent-glow);
+    font-weight: 500;
+  }
+
+  /* ── Slides Container ── */
+  .slides-container {
+    position: fixed;
+    left: var(--sidebar-width);
+    top: 0; right: 0; bottom: 0;
+    overflow: hidden;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 80px;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity var(--transition), transform var(--transition);
+    pointer-events: none;
+  }
+  .slide.active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .slide-inner {
+    max-width: 900px;
+    width: 100%;
+    text-align: center;
+  }
+
+  /* ── Typography ── */
+  .hero-number {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: 140px;
+    line-height: 1;
+    color: var(--accent);
+    margin-bottom: 16px;
+    text-shadow: 0 0 80px rgba(221,0,170,0.25);
+  }
+  .hero-number .suffix {
+    font-size: 60px;
+    color: var(--text-secondary);
+    font-weight: 400;
+  }
+  .slide-headline {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 52px;
+    line-height: 1.15;
+    margin-bottom: 20px;
+    letter-spacing: -0.5px;
+  }
+  .slide-headline .accent { color: var(--accent); }
+  .slide-subhead {
+    font-size: 20px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    font-weight: 300;
+    max-width: 680px;
+    margin: 0 auto;
+  }
+  .slide-label {
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 24px;
+    font-weight: 500;
+  }
+
+  /* ── Visual: Comparison Diagram ── */
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 60px 1fr;
+    gap: 0;
+    align-items: center;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  .compare-box {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 36px 28px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .compare-box.bad { border-color: rgba(255,107,107,0.2); }
+  .compare-box.good { border-color: rgba(240,192,64,0.2); }
+  .compare-box .icon { font-size: 40px; margin-bottom: 16px; }
+  .compare-box h3 { font-size: 16px; margin-bottom: 12px; font-weight: 600; }
+  .compare-box.bad h3 { color: var(--coral); }
+  .compare-box.good h3 { color: var(--accent); }
+  .compare-box p { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+  .compare-arrow {
+    font-size: 28px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  /* ── Visual: Lane Cards ── */
+  .lane-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    max-width: 820px;
+    margin: 0 auto;
+  }
+  .lane-card {
+    background: var(--bg-card);
+    border-radius: 14px;
+    padding: 28px 24px;
+    text-align: left;
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: border-color 0.3s;
+  }
+  .lane-card:hover { border-color: rgba(240,192,64,0.15); }
+  .lane-card .lane-icon {
+    font-size: 28px;
+    margin-bottom: 14px;
+    display: block;
+  }
+  .lane-card h4 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+  }
+  .lane-card p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.55;
+  }
+
+  /* ── Sidebar Logo ── */
+  .sidebar-logo {
+    position: absolute;
+    bottom: 28px;
+    left: 24px;
+    right: 24px;
+    text-align: center;
+  }
+  .sidebar-logo img {
+    width: 140px;
+    opacity: 0.35;
+    transition: opacity 0.3s;
+  }
+  .sidebar-logo img:hover { opacity: 0.55; }
+
+  /* ── Slide Logo ── */
+  .slide-logo {
+    display: block;
+    margin: 0 auto 28px;
+  }
+
+  /* ── Visual: Venue Grid ── */
+  .venue-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 14px;
+    max-width: 780px;
+    margin: 0 auto;
+  }
+  .venue-tile {
+    background: var(--bg-card);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 20px 16px;
+    text-align: center;
+    transition: border-color 0.3s, transform 0.3s;
+  }
+  .venue-tile:hover {
+    border-color: rgba(221,0,170,0.25);
+    transform: translateY(-2px);
+  }
+  .venue-tile .venue-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin: 0 auto 10px;
+    opacity: 0.7;
+  }
+  .venue-tile .venue-tile-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.3;
+  }
+  .venue-tile .venue-tile-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-top: 4px;
+  }
+
+  /* ── Visual: Feature Blocks ── */
+  .feature-row {
+    display: flex;
+    gap: 24px;
+    max-width: 840px;
+    margin: 0 auto;
+  }
+  .feature-block {
+    flex: 1;
+    background: var(--bg-card);
+    border-radius: 14px;
+    padding: 32px 24px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  .feature-block .feat-icon {
+    font-size: 36px;
+    margin-bottom: 14px;
+    display: block;
+  }
+  .feature-block h4 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .feature-block p {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  /* ── Visual: Big Quote ── */
+  .quote-block {
+    max-width: 720px;
+    margin: 0 auto;
+    position: relative;
+    padding: 0 20px;
+  }
+  .quote-mark {
+    font-family: 'Playfair Display', serif;
+    font-size: 120px;
+    color: var(--accent);
+    opacity: 0.2;
+    position: absolute;
+    top: -50px;
+    left: -10px;
+    line-height: 1;
+  }
+  .quote-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    line-height: 1.6;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--text-primary);
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── Visual: Stats Row ── */
+  .stats-row {
+    display: flex;
+    gap: 32px;
+    max-width: 860px;
+    margin: 0 auto;
+    justify-content: center;
+  }
+  .stat-card {
+    flex: 1;
+    text-align: center;
+  }
+  .stat-value {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: 48px;
+    color: var(--accent);
+    line-height: 1.1;
+    margin-bottom: 8px;
+  }
+  .stat-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+
+  /* ── Divider Pill ── */
+  .divider-pill {
+    display: inline-block;
+    background: var(--accent);
+    width: 40px;
+    height: 4px;
+    border-radius: 2px;
+    margin: 20px 0;
+  }
+
+  /* ── Checkpoint visual ── */
+  .checkpoint-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    max-width: 800px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+  }
+  .checkpoint-step {
+    background: var(--bg-card);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 18px 22px;
+    text-align: center;
+    min-width: 150px;
+  }
+  .checkpoint-step .step-icon { font-size: 24px; margin-bottom: 8px; display: block; }
+  .checkpoint-step .step-text { font-size: 12px; color: var(--text-secondary); line-height: 1.4; }
+  .checkpoint-arrow {
+    font-size: 20px;
+    color: var(--accent);
+    opacity: 0.5;
+  }
+
+  /* ── Included grid ── */
+  .included-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    max-width: 700px;
+    margin: 0 auto;
+    text-align: left;
+  }
+  .included-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background: var(--bg-card);
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+  .included-item .check {
+    color: var(--green);
+    font-size: 18px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .included-item span {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+
+  /* ── Team dots ── */
+  .team-row {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+  .team-member {
+    text-align: center;
+  }
+  .team-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #f06);
+    margin: 0 auto 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--bg-primary);
+  }
+  .team-member .name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+  .team-member .role {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  /* ── Progress bar bottom ── */
+  .progress-bar {
+    position: fixed;
+    bottom: 0;
+    left: var(--sidebar-width);
+    right: 0;
+    height: 3px;
+    background: rgba(255,255,255,0.04);
+    z-index: 100;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.5s ease;
+    border-radius: 0 2px 2px 0;
+  }
+
+  /* ── Animations ── */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .slide.active .animate-in {
+    animation: fadeInUp 0.6s ease forwards;
+  }
+  .slide.active .delay-1 { animation-delay: 0.1s; opacity: 0; }
+  .slide.active .delay-2 { animation-delay: 0.25s; opacity: 0; }
+  .slide.active .delay-3 { animation-delay: 0.4s; opacity: 0; }
+  .slide.active .delay-4 { animation-delay: 0.55s; opacity: 0; }
+
+  /* ── Keyboard hint ── */
+  .key-hint {
+    position: fixed;
+    bottom: 20px;
+    right: 36px;
+    font-size: 11px;
+    color: var(--text-muted);
+    z-index: 100;
+    letter-spacing: 1px;
+  }
+  .key-hint kbd {
+    background: rgba(255,255,255,0.06);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  /* ── Venue Slide: Hero Stat + Preferred Badge ── */
+  .venue-hero-stat {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 8px;
+  }
+  .venue-hero-stat .number {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: 88px;
+    line-height: 1;
+    color: var(--accent);
+    text-shadow: 0 0 60px rgba(221,0,170,0.2);
+  }
+  .venue-hero-stat .number .plus {
+    font-size: 56px;
+    color: var(--accent);
+    opacity: 0.7;
+  }
+  .venue-hero-stat .stat-context {
+    text-align: left;
+    max-width: 200px;
+  }
+  .venue-hero-stat .stat-context .big-label {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.15;
+  }
+  .venue-hero-stat .stat-context .sub-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    line-height: 1.3;
+  }
+
+  .preferred-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(221, 0, 170, 0.08);
+    border: 1px solid rgba(221, 0, 170, 0.2);
+    border-radius: 100px;
+    padding: 8px 20px;
+    margin-bottom: 28px;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .preferred-badge .badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.7); }
+  }
+
+  .venue-grid-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin-bottom: 16px;
+    font-weight: 400;
+  }
+</style>
+</head>
+<body>
+
+<!-- Slide Counter -->
+<div class="slide-counter"><span class="current" id="currentSlide">1</span> / <span id="totalSlides">14</span></div>
+
+<!-- Progress Bar -->
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+<!-- Keyboard Hint -->
+<div class="key-hint"><kbd>←</kbd> <kbd>→</kbd> navigate</div>
+
+<!-- Sidebar -->
+<nav class="sidebar">
+  <div class="sidebar-label">Chapters</div>
+  <div class="sidebar-item active" data-chapter="0" onclick="goToChapter(0)">Partnership Model</div>
+  <div class="sidebar-item" data-chapter="1" onclick="goToChapter(1)">What We Own</div>
+  <div class="sidebar-item" data-chapter="2" onclick="goToChapter(2)">Venue Expertise</div>
+  <div class="sidebar-item" data-chapter="3" onclick="goToChapter(3)">What Makes Us Different</div>
+  <div class="sidebar-item" data-chapter="4" onclick="goToChapter(4)">Social Proof</div>
+  <div class="sidebar-item" data-chapter="5" onclick="goToChapter(5)">The Track Record</div>
+  <div class="sidebar-logo"><img src="../pinkwhiteBIGFUNfeb2007FINALLOGO.png" alt="BIG FUN Disc Jockeys"></div>
+</nav>
+
+<!-- Slides -->
+<div class="slides-container">
+
+  <!-- ═══════════ CHAPTER 0: Partnership Model ═══════════ -->
+
+  <!-- Slide 1 -->
+  <div class="slide active" data-slide="0" data-chapter="0">
+    <div class="slide-inner">
+      <img src="../pinkwhiteBIGFUNfeb2007FINALLOGO.png" alt="BIG FUN" class="slide-logo animate-in" style="width:220px;"><div class="slide-label animate-in delay-1">After 5,000+ Weddings</div>
+      <h1 class="slide-headline animate-in delay-1">We Make You <span class="accent">Look Good.</span></h1>
+      <div class="divider-pill animate-in delay-2"></div>
+      <p class="slide-subhead animate-in delay-3">We own our lane completely, coordinate seamlessly with your team, and never create problems on event day.</p>
+    </div>
+  </div>
+
+  <!-- Slide 2 -->
+  <div class="slide" data-slide="1" data-chapter="0">
+    <div class="slide-inner">
+      <div class="slide-label animate-in">The Partnership</div>
+      <h1 class="slide-headline animate-in delay-1" style="font-size:40px;">You curate the team.<br>We make the team <span class="accent">shine.</span></h1>
+      <div style="height:32px"></div>
+      <div class="compare-grid animate-in delay-2">
+        <div class="compare-box">
+          <div class="icon">🎯</div>
+          <h3>Your Lane</h3>
+          <p>Client relationships<br>Vendor curation<br>Day-of orchestration</p>
+        </div>
+        <div class="compare-arrow">→</div>
+        <div class="compare-box good">
+          <div class="icon">🎵</div>
+          <h3>Our Lane</h3>
+          <p>Audio & announcements<br>Real-time execution<br>Timeline management</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ CHAPTER 1: What We Own ═══════════ -->
+
+  <!-- Slide 3 -->
+  <div class="slide" data-slide="2" data-chapter="1">
+    <div class="slide-inner">
+      <div class="slide-label animate-in">Clear Lanes</div>
+      <h1 class="slide-headline animate-in delay-1" style="font-size:38px;">What We Own<br><span class="accent">So You Don't Have To</span></h1>
+      <div style="height:28px"></div>
+      <div class="lane-grid">
+        <div class="lane-card animate-in delay-1">
+          <span class="lane-icon">🎙️</span>
+          <h4>Audio & Announcements</h4>
+          <p>Ceremony sound, MC services, music playback, live musician amplification</p>
+        </div>
+        <div class="lane-card animate-in delay-2">
+          <span class="lane-icon">👥</span>
+          <h4>Grand Entrance</h4>
+          <p>Lining up wedding party, pronunciation practice, order confirmation</p>
+        </div>
+        <div class="lane-card animate-in delay-3">
+          <span class="lane-icon">🎤</span>
+          <h4>Speaker Prep</h4>
+          <p>Toast speakers coached during dinner—where to stand, mic technique, order</p>
+        </div>
+        <div class="lane-card animate-in delay-4">
+          <span class="lane-icon">🔄</span>
+          <h4>Transitions</h4>
+          <p>Managing flow: ceremony → cocktails → dinner → dancing</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 4 -->
+  <div class="slide" data-slide="3" data-chapter="1">
+    <div class="slide-inner">
+      <div class="slide-label animate-in">Real-Time Checkpoint</div>
+      <h1 class="slide-headline animate-in delay-1" style="font-size:36px;">Nothing gets announced<br>before it can be <span class="accent">captured.</span></h1>
+      <div style="height:32px"></div>
+      <div class="checkpoint-flow animate-in delay-2">
+        <div class="checkpoint-step">
+          <span class="step-icon">📋</span>
+          <span class="step-text">Moment ready<br>(first dance, toasts…)</span>
+        </div>
+        <span class="checkpoint-arrow">→</span>
+        <div class="checkpoint-step">
+          <span class="step-icon">📸</span>
+          <span class="step-text">Confirm photo/video<br>in position</span>
+        </div>
+        <span class="checkpoint-arrow">→</span>
+        <div class="checkpoint-step">
+          <span class="step-icon">✅</span>
+          <span class="step-text">Visual confirmation<br>received</span>
+        </div>
+        <span class="checkpoint-arrow">→</span>
+        <div class="checkpoint-step" style="border-color: rgba(240,192,64,0.3);">
+          <span class="step-icon">🎙️</span>
+          <span class="step-text" style="color:var(--accent);font-weight:500;">Announce<br>the moment</span>
+        </div>
+      </div>
+      <div style="height:24px"></div>
+      <p class="slide-subhead animate-in delay-3" style="font-size:16px;">This real-time checkpoint catches last-second adjustments and ensures every moment is captured.</p>
+    </div>
+  </div>
+
+  <!-- Slide 5 -->
+  <div class="slide" data-slide="4" data-chapter="1">
+    <div class="slide-inner">
+      <div class="slide-label animate-in">Working In Sync</div>
+      <h1 class="slide-headline animate-in delay-1" style="font-size:38px;">While we handle the entrance,<br><span class="accent">you're with the couple.</span></h1>
+      <div class="divider-pill animate-in delay-2"></div>
+      <p class="slide-subhead animate-in delay-3">While we prep speakers at dinner, you're coordinating the next phase. We work closely together—but you never worry about our lane.</p>
+    </div>
+  </div>
+
+  <!-- ═══════════ CHAPTER 2: Venue Expertise ═══════════ -->
+
+  <!-- Slide 6 — UPDATED -->
+  <div class="slide" data-slide="5" data-chapter="2">
+    <div class="slide-inner">
+      <div class="slide-label animate-in">Venue Expertise</div>
+
+      <!-- Big 750+ number -->
+      <div class="venue-hero-stat animate-in delay-1">
+        <div class="number">750<span class="plus">+</span></div>
+        <div class="stat-context">
+          <div class="big-label">Bay Area Venues</div>
+          <div class="sub-label">performed at over 35+ years</div>
+        </div>
+      </div>
+
+      <div style="height:20px"></div>
+
+      <!-- Preferred vendor badge -->
+      <div class="preferred-badge animate-in delay-2">
+        <span class="badge-dot"></span>
+        On the Preferred Vendor List
+      </div>
+
+      <div style="height:8px"></div>
+      <div class="venue-grid-label animate-in delay-2">A few of the top venues that recommend us</div>
+
+      <div class="venue-grid animate-in delay-3">
+        <div class="venue-tile"><div class="venue-dot"></div><div class="venue-tile-name">Nestldown</div></div>
+        <div class="venue-tile"><div class="venue-dot"></div><div class="venue-tile-name">Thomas Fogarty Winery</div></div>
+        <div class="venue-tile"><div class="venue-dot"></div><div class="venue-tile-name">Kohl Mansion</div></div>
+        <div class="venue-tile"><div class="venue-dot"></div><div class="venue-tile-name">CordeValle Winery</div><div class="venue-tile-sub">formerly Clos LaChance</div></div>
+        <div class="venue-tile"><div class="venue-dot"></div><div class="venue-tile-name">Oceano Hotel</div></div>
+        <div class="venue-tile"><div class="venue-dot"></div><div class="venue-tile-name">Hakone Gardens</div></div>
+        <div class="venue-tile"><div class="venue-dot"></div><div class="venue-tile-name">Villa Montalvo</div></div>
+        <div class="venue-tile"><div class="venue-dot"></div><div class="venue-tile-name">The Mountain Terrace</div></div>
+        <div class="venue-tile"><div class="venue-dot"></div><div class="venue-tile-name">Ritz-Carlton<br>Half Moon Bay</div></div>
+      </div>
+      <p class="slide-subhead animate-in delay-4" style="margin-top:24px;font-size:15px;">Your couples won't need to explain the venue to us—we'll help them navigate it.</p>
+    </div>
+  </div>
+
+  <!-- ═══════════ CHAPTER 3: What Makes Us Different ═══════════ -->
+
+  <!-- Slide 7 -->
+  <div class="slide" data-slide="6" data-chapter="3">
+    <div class="slide-inner">
+      <div class="slide-label animate-in">Zero Risk Model</div>
+      <h1 class="slide-headline animate-in delay-1" style="font-size:42px;">No Deposit.<br>Pay <span class="accent">After</span> the Wedding.</h1>
+      <div style="height:28px"></div>
+      <div class="feature-row animate-in delay-2">
+        <div class="feature-block">
+          <span class="feat-icon">🚫</span>
+          <h4>No Deposit</h4>
+          <p>Zero upfront cost to commit</p>
+        </div>
+        <div class="feature-block">
+          <span class="feat-icon">📅</span>
+          <h4>Pay After</h4>
+          <p>30 days after the wedding</p>
+        </div>
+        <div class="feature-block">
+          <span class="feat-icon">✌️</span>
+          <h4>Cancel Anytime</h4>
+          <p>Even the day before—no penalty</p>
+        </div>
+      </div>
+      <div style="height:24px"></div>
+      <p class="slide-subhead animate-in delay-3" style="font-size:15px;"><span style="color:var(--accent)">35+ years</span> operating this way. Your couples feel zero pressure.</p>
+    </div>
+  </div>
+
+  <!-- Slide 8 -->
+  <div class="slide" data-slide="7" data-chapter="3">
+    <div class="slide-inner">
+      <div class="slide-label animate-in">Included, Not Upsold</div>
+      <h1 class="slide-headline animate-in delay-1" style="font-size:40px;">No Surprise Charges.<br><span class="accent">Ever.</span></h1>
+      <div style="height:24px"></div>
+      <div class="included-grid animate-in delay-2">
+        <div class="included-item">
+          <span class="check">✓</span>
+          <span>Professional dance lighting system</span>
+        </div>
+        <div class="included-item">
+          <span class="check">✓</span>
+          <span>Wireless lavs for ceremony</span>
+        </div>
+        <div class="included-item">
+          <span class="check">✓</span>
+          <span>Custom song edits at no cost</span>
+        </div>
+        <div class="included-item">
+          <span class="check">✓</span>
+          <span>Unlimited planning support</span>
+        </div>
+      </div>
+      <div style="height:20px"></div>
+      <p class="slide-subhead animate-in delay-3" style="font-size:15px;">No nickel-and-diming. No angry couples asking why ceremony mics cost extra.</p>
+    </div>
+  </div>
+
+  <!-- Slide 9 -->
+  <div class="slide" data-slide="8" data-chapter="3">
+    <div class="slide-inner">
+      <div class="slide-label animate-in">Consistency</div>
+      <h1 class="slide-headline animate-in delay-1" style="font-size:40px;">Same Experience.<br><span class="accent">Every Time.</span></h1>
+      <div style="height:28px"></div>
+      <div class="team-row animate-in delay-2">
+        <div class="team-member"><div class="team-avatar">H</div><span class="name">Henry</span></div>
+        <div class="team-member"><div class="team-avatar">W</div><span class="name">Woody</span></div>
+        <div class="team-member"><div class="team-avatar">St</div><span class="name">Stefano</span></div>
+        <div class="team-member"><div class="team-avatar">Se</div><span class="name">Stephanie</span></div>
+        <div class="team-member"><div class="team-avatar">F</div><span class="name">Felipe</span></div>
+        <div class="team-member"><div class="team-avatar">P</div><span class="name">Paul</span></div>
+      </div>
+      <div style="height:24px"></div>
+      <p class="slide-subhead animate-in delay-3" style="font-size:15px;">6 professionally-trained DJs. Identical company-owned equipment. Company-defined standards.<br>You're not gambling on which DJ shows up.</p>
+    </div>
+  </div>
+
+  <!-- ═══════════ CHAPTER 4: Social Proof ═══════════ -->
+
+  <!-- Slide 10 -->
+  <div class="slide" data-slide="9" data-chapter="4">
+    <div class="slide-inner">
+      <div class="quote-block animate-in delay-1">
+        <span class="quote-mark">"</span>
+        <p class="quote-text">Due to a vicious downpour of rain, Paul ran with the punches and made the necessary adjustments without even adding to my stress. It was all worked out between Paul and our DOC—and it was so nice not to have to worry.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 11 -->
+  <div class="slide" data-slide="10" data-chapter="4">
+    <div class="slide-inner">
+      <div class="quote-block animate-in delay-1">
+        <span class="quote-mark">"</span>
+        <p class="quote-text">I didn't quite realize that the DJ would play a huge role in progressing the schedule of events. Henry made sure he knew the exact timeline down to the minute and offered valuable suggestions.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ CHAPTER 5: Track Record ═══════════ -->
+
+  <!-- Slide 12 -->
+  <div class="slide" data-slide="11" data-chapter="5">
+    <div class="slide-inner">
+      <div class="slide-label animate-in">The Track Record</div>
+      <div class="hero-number animate-in delay-1">297<span class="suffix"> / 304</span></div>
+      <h1 class="slide-headline animate-in delay-2" style="font-size:32px;">Five-Star Yelp Reviews</h1>
+      <div style="height:32px"></div>
+      <div class="stats-row animate-in delay-3">
+        <div class="stat-card">
+          <div class="stat-value">5,000+</div>
+          <div class="stat-label">Weddings</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">35+</div>
+          <div class="stat-label">Years</div>
+        </div>
+      </div>
+      <div style="height:24px"></div>
+      <p class="slide-subhead animate-in delay-4" style="font-size:16px;color:var(--accent);">Never missed a wedding in 35+ years.</p>
+    </div>
+  </div>
+
+</div><!-- end slides-container -->
+
+<script>
+  // ── State ──
+  let currentSlide = 0;
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  const sidebarItems = document.querySelectorAll('.sidebar-item');
+
+  document.getElementById('totalSlides').textContent = totalSlides;
+
+  // ── Chapter mapping: which slide starts each chapter ──
+  const chapterStarts = [0, 2, 5, 6, 9, 11];
+
+  function goToSlide(index) {
+    if (index < 0 || index >= totalSlides) return;
+    slides[currentSlide].classList.remove('active');
+    currentSlide = index;
+    slides[currentSlide].classList.add('active');
+    document.getElementById('currentSlide').textContent = currentSlide + 1;
+    document.getElementById('progressFill').style.width = ((currentSlide + 1) / totalSlides * 100) + '%';
+    updateSidebar();
+  }
+
+  function updateSidebar() {
+    const chapter = parseInt(slides[currentSlide].dataset.chapter);
+    sidebarItems.forEach(item => {
+      item.classList.toggle('active', parseInt(item.dataset.chapter) === chapter);
+    });
+  }
+
+  function goToChapter(chapterIndex) {
+    goToSlide(chapterStarts[chapterIndex]);
+  }
+
+  // ── Keyboard Navigation ──
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+      e.preventDefault();
+      goToSlide(currentSlide + 1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      goToSlide(currentSlide - 1);
+    }
+  });
+
+  // Init
+  goToSlide(0);
+</script>
+</body>
+</html>
